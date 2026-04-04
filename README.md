@@ -1,3 +1,12 @@
+---
+title: SQL Debug Env
+emoji: 🛠️
+colorFrom: blue
+colorTo: green
+sdk: docker
+pinned: false
+---
+
 # SQLDebugEnv
 
 **An OpenEnv-compliant environment for training and evaluating AI agents on real-world SQL debugging tasks.**
