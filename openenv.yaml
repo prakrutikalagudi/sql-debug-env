@@ -1,0 +1,82 @@
+name: sql-debug-env
+version: "1.0.0"
+description: >
+  SQLDebugEnv is an OpenEnv-compliant environment where AI agents debug broken SQL queries.
+  An agent receives a broken or inefficient SQL query, executes fixed versions against an
+  in-process SQLite database, and receives shaped rewards for syntax validity, execution
+  success, correctness, and query efficiency. Three tasks range from easy (syntax error)
+  through medium (query optimization) to hard (silent logical bug).
+
+tags:
+  - openenv
+  - sql
+  - debugging
+  - data-engineering
+  - real-world
+
+author: sql-debug-env-team
+
+tasks:
+  - id: syntax_fix
+    description: Fix a syntax error in a customer orders aggregation query
+    difficulty: easy
+    max_steps: 6
+    reward_range: [0.0, 1.0]
+
+  - id: query_optimize
+    description: Replace a slow correlated subquery with an efficient JOIN aggregation
+    difficulty: medium
+    max_steps: 8
+    reward_range: [0.0, 1.0]
+
+  - id: logic_bug
+    description: Find and fix a silent logical bug causing inflated revenue totals
+    difficulty: hard
+    max_steps: 10
+    reward_range: [0.0, 1.0]
+
+observation:
+  type: object
+  fields:
+    - task_id: string
+    - task_description: string
+    - schema_ddl: string
+    - sample_data: string
+    - current_query: string
+    - error_message: string | null
+    - execution_time_ms: float | null
+    - result_preview: string | null
+    - result_row_count: int | null
+    - step_number: int
+    - max_steps: int
+    - hint: string | null
+
+action:
+  type: object
+  fields:
+    - sql_query: string
+    - explanation: string
+
+reward:
+  type: float
+  range: [0.0, 1.0]
+  shaped: true
+  components:
+    - syntax_valid: +0.10 to +0.20
+    - executes: +0.15 to +0.30
+    - result_correct: +0.30 to +0.55
+    - efficient: +0.20 to +0.25
+    - loop_penalty: -0.05 per repeated query
+    - destructive_penalty: -0.30 for DROP/DELETE/TRUNCATE
+
+endpoints:
+  reset: POST /reset
+  step:  POST /step
+  state: GET  /state
+
+runtime:
+  language: python
+  version: "3.11"
+  framework: fastapi
+  database: sqlite (in-process)
+  port: 7860
