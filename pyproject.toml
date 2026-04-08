@@ -18,10 +18,9 @@ dev = ["pytest>=7.0.0"]
 
 [project.scripts]
 server = "server.app:main"
-
 [build-system]
-requires = ["setuptools>=68.0"]
-build-backend = "setuptools.backends.legacy:build"
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [tool.openenv]
 name = "sql-debug-env"
