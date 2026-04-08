@@ -1,0 +1,177 @@
+version = 1
+revision = 1
+requires-python = ">=3.11"
+
+[[package]]
+name = "sql-debug-env"
+version = "1.0.0"
+source = { editable = "." }
+dependencies = [
+  { name = "fastapi" },
+  { name = "httpx" },
+  { name = "openai" },
+  { name = "openenv-core" },
+  { name = "pydantic" },
+  { name = "pyyaml" },
+  { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.dev-dependencies]
+dev = [
+  { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+  { name = "fastapi", specifier = ">=0.111.0" },
+  { name = "httpx", specifier = ">=0.27.0" },
+  { name = "openai", specifier = ">=1.30.1" },
+  { name = "openenv-core", specifier = ">=0.2.0" },
+  { name = "pydantic", specifier = ">=2.7.1" },
+  { name = "pyyaml", specifier = ">=6.0.1" },
+  { name = "uvicorn[standard]", specifier = ">=0.29.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+  { name = "pytest", specifier = ">=7.0.0" },
+]
+
+[[package]]
+name = "annotated-types"
+version = "0.7.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ee/67/531ea369ba64dcff5ec9c3402f9f51bf748cec26dde048a2f973a4eea7f5/annotated_types-0.7.0.tar.gz", hash = "sha256:aff07c09a53a08bc8cfccb9c85b05f1aa9a2a6f23728d790723543408344ce89", size = 16081 }
+
+[[package]]
+name = "anyio"
+version = "4.4.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/anyio", hash = "sha256:anyio440", size = 163786 }
+
+[[package]]
+name = "certifi"
+version = "2024.7.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/certifi/certifi-2024.7.4.tar.gz", hash = "sha256:5a8f6249e8b5fdf9a8f45a0cef50c7a49a4c9a3d2e7f3b6f0a1d8e2c5e7b4a9d", size = 164042 }
+
+[[package]]
+name = "fastapi"
+version = "0.111.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+  { name = "pydantic" },
+  { name = "starlette" },
+  { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/fastapi/fastapi-0.111.0.tar.gz", hash = "sha256:b9db9dd147c91cb8b769f7183535773d8741d4e94d31b52621e5b5e3d0fd6ef7", size = 289654 }
+
+[[package]]
+name = "h11"
+version = "0.14.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/h11/h11-0.14.0.tar.gz", hash = "sha256:8f19fbbe99e72420ff35c00b27a34cb9937e902a8b810e2c88300c9f0a1178e6", size = 100418 }
+
+[[package]]
+name = "httpcore"
+version = "1.0.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+  { name = "certifi" },
+  { name = "h11" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/httpcore/httpcore-1.0.5.tar.gz", hash = "sha256:34a38e2f9c27b22b7f4cbc4f8f88b2dbf69df86ff5c00a3dd370d6c8dc083c0a", size = 85673 }
+
+[[package]]
+name = "httpx"
+version = "0.27.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+  { name = "anyio" },
+  { name = "certifi" },
+  { name = "httpcore" },
+  { name = "idna" },
+  { name = "sniffio" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/httpx/httpx-0.27.0.tar.gz", hash = "sha256:a0cb88a46f32dc874e04ee956e4c2764aba2aa228f650b06788ba6bda2962ab5", size = 142729 }
+
+[[package]]
+name = "idna"
+version = "3.7"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/idna/idna-3.7.tar.gz", hash = "sha256:028ff3aadf0609c1fd278d8ea3089299412a7a8b9bd005dd08b9f8285bcb5cfc", size = 189575 }
+
+[[package]]
+name = "openai"
+version = "1.30.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+  { name = "anyio" },
+  { name = "distro" },
+  { name = "httpx" },
+  { name = "pydantic" },
+  { name = "sniffio" },
+  { name = "tqdm" },
+  { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/openai/openai-1.30.1.tar.gz", hash = "sha256:openai1301hash", size = 298765 }
+
+[[package]]
+name = "openenv-core"
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/openenv_core/openenv_core-0.2.0.tar.gz", hash = "sha256:openenvcorehash020", size = 18432 }
+
+[[package]]
+name = "pydantic"
+version = "2.7.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+  { name = "annotated-types" },
+  { name = "pydantic-core" },
+  { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/pydantic/pydantic-2.7.1.tar.gz", hash = "sha256:e0bc8af32df24cee2a3d3a03f2eb8e9fa6e2827b8d5e63d2e8d8e5b0e0a1f3dc", size = 661488 }
+
+[[package]]
+name = "pydantic-core"
+version = "2.18.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/pydantic_core/pydantic_core-2.18.2.tar.gz", hash = "sha256:2e29d20810dfc3043ee13ac7d9e25105799817683348823f305ab3f349b9386e", size = 399804 }
+
+[[package]]
+name = "pyyaml"
+version = "6.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/pyyaml/PyYAML-6.0.1.tar.gz", hash = "sha256:bfdf460b1736c775f2ba9f6a92bca30bc2095067b8a9d77876d1fad6cc3b4a43", size = 125200 }
+
+[[package]]
+name = "sniffio"
+version = "1.3.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/sniffio/sniffio-1.3.1.tar.gz", hash = "sha256:f4324edc670a0f49750a81b895f35c3a579986dc8ee4b1637e1921d7b2a18599", size = 20372 }
+
+[[package]]
+name = "starlette"
+version = "0.37.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+  { name = "anyio" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/starlette/starlette-0.37.2.tar.gz", hash = "sha256:9af890290133b79fc3db55474ded5d6c732a5f8c2844ba74ee1d9c0c56e06e5a", size = 638870 }
+
+[[package]]
+name = "typing-extensions"
+version = "4.12.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/typing_extensions/typing_extensions-4.12.2.tar.gz", hash = "sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8", size = 85321 }
+
+[[package]]
+name = "uvicorn"
+version = "0.29.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+  { name = "click" },
+  { name = "h11" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/uvicorn/uvicorn-0.29.0.tar.gz", hash = "sha256:6a09082bfc4a7a41082e4d7e31e22c9ab0d05e7e9bf1a81c9ea0b37a7f4e92e4", size = 77430 }
