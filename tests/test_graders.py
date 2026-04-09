@@ -15,6 +15,8 @@ from env.graders import execute_query, grade, is_destructive, results_match
 from env.models import SQLAction
 from env.tasks import TASKS
 
+EPS = 1e-6
+
 
 # ──────────────────────────────────────────────
 # Utility tests
@@ -104,7 +106,9 @@ class TestTask1SyntaxFix:
 
     def test_destructive_query_penalized(self):
         result = self.env.step(SQLAction(sql_query="DROP TABLE orders", explanation="bad"))
-        assert result.reward == 0.0
+        # Score is clamped to EPS (never exactly 0.0) and penalty is applied
+        assert result.reward > 0.0          # strictly greater than 0 due to clamp
+        assert result.reward < 0.1          # still very low
         assert result.reward_breakdown.destructive_penalty < 0
 
     def test_loop_penalty_on_repeat(self):
@@ -244,10 +248,12 @@ class TestEnvironmentAPI:
             assert result.observation.task_id == task_id
 
     def test_reward_always_in_range(self):
+        """Reward must be strictly inside (0, 1) — never exactly 0.0 or 1.0."""
         env = SQLDebugEnv(task_id="logic_bug")
         env.reset()
         for query in ["SELECT 1", "DROP TABLE sales", "SELECT * FROM sales_reps"]:
             env2 = SQLDebugEnv(task_id="logic_bug")
             env2.reset()
             result = env2.step(SQLAction(sql_query=query))
-            assert 0.0 <= result.reward <= 1.0, f"reward out of range for: {query}"
+            assert result.reward > 0.0, f"reward must be > 0.0 for: {query}"
+            assert result.reward < 1.0, f"reward must be < 1.0 for: {query}"
