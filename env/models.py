@@ -56,20 +56,23 @@ class StepResult(BaseModel):
     info: Dict[str, Any] = Field(default_factory=dict)
 
 
-class ResetResult(BaseModel):
-    """Returned by env.reset()."""
+class SQLReward(BaseModel):
+    """Shaped reward breakdown for a single step."""
+
+    total: float = Field(..., gt=0.0, lt=1.0, description="Total reward strictly in (0,1)")
+    syntax_valid: float = Field(0.0)
+    executes: float = Field(0.0)
+    result_correct: float = Field(0.0)
+    efficient: float = Field(0.0)
+    loop_penalty: float = Field(0.0)
+    destructive_penalty: float = Field(0.0)
+
+
+class StepResult(BaseModel):
+    """Returned by env.step()."""
 
     observation: SQLObservation
-    info: Dict[str, Any] = Field(default_factory=dict)
-
-
-class StateResult(BaseModel):
-    """Returned by env.state() — full internal state snapshot."""
-
-    task_id: str
-    step_number: int
-    max_steps: int
-    cumulative_reward: float
+    reward: float = Field(..., gt=0.0, lt=1.0)   # 🔥 IMPORTANT FIX
+    reward_breakdown: SQLReward
     done: bool
-    previous_queries: List[str]
-    best_reward_so_far: float
+    info: Dict[str, Any] = Field(default_factory=dict)
