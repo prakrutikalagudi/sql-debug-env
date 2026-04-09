@@ -37,28 +37,6 @@ class SQLAction(BaseModel):
 class SQLReward(BaseModel):
     """Shaped reward breakdown for a single step."""
 
-    total: float = Field(..., ge=0.0, le=1.0, description="Total reward for this step [0,1]")
-    syntax_valid: float = Field(0.0, description="Query parsed without syntax error (+0.2)")
-    executes: float = Field(0.0, description="Query ran without runtime error (+0.3)")
-    result_correct: float = Field(0.0, description="Output matches gold result (+0.3)")
-    efficient: float = Field(0.0, description="Executes within time threshold (+0.2)")
-    loop_penalty: float = Field(0.0, description="Penalty for resubmitting identical query")
-    destructive_penalty: float = Field(0.0, description="Penalty for DROP/DELETE/TRUNCATE")
-
-
-class StepResult(BaseModel):
-    """Returned by env.step()."""
-
-    observation: SQLObservation
-    reward: float = Field(..., ge=0.0, le=1.0)
-    reward_breakdown: SQLReward
-    done: bool
-    info: Dict[str, Any] = Field(default_factory=dict)
-
-
-class SQLReward(BaseModel):
-    """Shaped reward breakdown for a single step."""
-
     total: float = Field(..., gt=0.0, lt=1.0, description="Total reward strictly in (0,1)")
     syntax_valid: float = Field(0.0)
     executes: float = Field(0.0)
@@ -76,3 +54,22 @@ class StepResult(BaseModel):
     reward_breakdown: SQLReward
     done: bool
     info: Dict[str, Any] = Field(default_factory=dict)
+
+
+class ResetResult(BaseModel):
+    """Returned by env.reset()."""
+
+    observation: SQLObservation
+    info: Dict[str, Any] = Field(default_factory=dict)
+
+
+class StateResult(BaseModel):
+    """Returned by env.state() — full internal state snapshot."""
+
+    task_id: str
+    step_number: int
+    max_steps: int
+    cumulative_reward: float
+    done: bool
+    previous_queries: List[str]
+    best_reward_so_far: float
