@@ -2,7 +2,7 @@
 Deterministic graders for SQLDebugEnv.
 
 Each grader takes the agent's query execution results and the gold results,
-and returns a shaped SQLReward with total in [0.0, 1.0].
+and returns a shaped SQLReward with total strictly in (0, 1).
 """
 
 import re
@@ -11,6 +11,15 @@ import sqlite3
 from typing import Any, List, Optional, Tuple
 
 from env.models import SQLReward
+
+
+# Small epsilon to keep score strictly between (0,1)
+EPS = 1e-6
+
+
+def clamp_score(value: float) -> float:
+    """Ensure score is strictly between (0, 1)."""
+    return max(EPS, min(1.0 - EPS, value))
 
 
 # ──────────────────────────────────────────────────────────────────
@@ -30,9 +39,6 @@ def is_destructive(query: str) -> bool:
 def execute_query(
     conn: sqlite3.Connection, query: str
 ) -> Tuple[bool, Optional[List[Any]], Optional[str], float]:
-    """
-    Execute a SQL query and return (success, rows, error_msg, elapsed_ms).
-    """
     start = time.perf_counter()
     try:
         cur = conn.execute(query)
@@ -45,7 +51,6 @@ def execute_query(
 
 
 def rows_to_comparable(rows: List[Any]) -> List[tuple]:
-    """Normalize rows for comparison: sort and round floats."""
     normalized = []
     for row in rows:
         norm_row = tuple(
@@ -56,7 +61,6 @@ def rows_to_comparable(rows: List[Any]) -> List[tuple]:
 
 
 def results_match(agent_rows: List[Any], gold_rows: List[Any]) -> bool:
-    """Return True if agent and gold produce equivalent result sets."""
     if agent_rows is None or gold_rows is None:
         return False
     if len(agent_rows) != len(gold_rows):
@@ -81,50 +85,46 @@ def grade(
     loop_penalty: float = -0.05,
     destructive_penalty: float = -0.3,
 ) -> SQLReward:
-    """
-    Grade a single agent query attempt.
 
-    Returns a SQLReward with per-signal breakdown and clamped total.
-    """
-    reward = SQLReward(total=0.0)
+    reward = SQLReward(total=EPS)  # never start at 0
 
-    # Destructive action guard
+    # ───── Destructive check ─────
     if is_destructive(agent_query):
         reward.destructive_penalty = destructive_penalty
-        reward.total = max(0.0, destructive_penalty)
+        reward.total = clamp_score(destructive_penalty)
         return reward
 
-    # Loop penalty — same query submitted before
+    # ───── Loop penalty ─────
     if agent_query.strip() in [q.strip() for q in prev_queries]:
         reward.loop_penalty = loop_penalty
 
-    # 1. Syntax check — use EXPLAIN to parse without executing
+    # ───── Syntax check ─────
     try:
         conn.execute(f"EXPLAIN {agent_query}")
         reward.syntax_valid = syntax_weight
     except Exception:
-        # Syntax error — stop here
-        reward.total = max(0.0, reward.loop_penalty + reward.destructive_penalty)
+        raw = reward.loop_penalty + reward.destructive_penalty
+        reward.total = clamp_score(raw)
         return reward
 
-    # 2. Execution check
+    # ───── Execution check ─────
     success, agent_rows, error_msg, elapsed_ms = execute_query(conn, agent_query)
     if not success:
         raw = reward.syntax_valid + reward.loop_penalty + reward.destructive_penalty
-        reward.total = max(0.0, min(1.0, raw))
+        reward.total = clamp_score(raw)
         return reward
 
     reward.executes = execute_weight
 
-    # 3. Correctness check
+    # ───── Correctness ─────
     if results_match(agent_rows, gold_rows):
         reward.result_correct = correct_weight
 
-    # 4. Efficiency check
+    # ───── Efficiency ─────
     if elapsed_ms <= time_threshold_ms:
         reward.efficient = efficiency_weight
 
-    # Sum up
+    # ───── Final score ─────
     raw = (
         reward.syntax_valid
         + reward.executes
@@ -133,19 +133,16 @@ def grade(
         + reward.loop_penalty
         + reward.destructive_penalty
     )
-    reward.total = max(0.0, min(1.0, raw))
+
+    reward.total = clamp_score(raw)
     return reward
 
 
 # ──────────────────────────────────────────────────────────────────
-# Per-task graders (thin wrappers with task-specific weights)
+# Task-specific graders
 # ──────────────────────────────────────────────────────────────────
 
 def grade_syntax_fix(conn, agent_query, gold_rows, prev_queries) -> SQLReward:
-    """
-    Task 1 — Easy.
-    Correctness is the primary signal; efficiency is trivially satisfied for this size.
-    """
     return grade(
         conn=conn,
         agent_query=agent_query,
@@ -160,11 +157,6 @@ def grade_syntax_fix(conn, agent_query, gold_rows, prev_queries) -> SQLReward:
 
 
 def grade_query_optimize(conn, agent_query, gold_rows, prev_queries) -> SQLReward:
-    """
-    Task 2 — Medium.
-    Efficiency is essential (threshold=200ms). Correctness still required for full score.
-    Syntax/execute weights lowered slightly so efficiency matters more.
-    """
     return grade(
         conn=conn,
         agent_query=agent_query,
@@ -179,11 +171,6 @@ def grade_query_optimize(conn, agent_query, gold_rows, prev_queries) -> SQLRewar
 
 
 def grade_logic_bug(conn, agent_query, gold_rows, prev_queries) -> SQLReward:
-    """
-    Task 3 — Hard.
-    The query already runs (broken version executes). Correctness dominates.
-    Efficiency threshold is generous — the bug is logical, not performance.
-    """
     return grade(
         conn=conn,
         agent_query=agent_query,
@@ -198,7 +185,7 @@ def grade_logic_bug(conn, agent_query, gold_rows, prev_queries) -> SQLReward:
 
 
 GRADER_MAP = {
-    "syntax_fix":    grade_syntax_fix,
+    "syntax_fix": grade_syntax_fix,
     "query_optimize": grade_query_optimize,
-    "logic_bug":     grade_logic_bug,
+    "logic_bug": grade_logic_bug,
 }
