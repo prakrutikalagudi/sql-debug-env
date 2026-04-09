@@ -35,6 +35,9 @@ TEMPERATURE  = 0.2
 MAX_TOKENS   = 512
 SUCCESS_THRESHOLD = 0.7   # reward >= this → episode is "successful"
 
+# Small epsilon — scores must be strictly inside (0, 1)
+EPS = 1e-6
+
 SYSTEM_PROMPT = textwrap.dedent("""
 You are an expert SQL engineer. You will be given a broken SQL query and a database schema.
 Your job is to fix the query so it:
@@ -61,15 +64,15 @@ def log_step(step: int, action: str, reward: float, done: bool, error: Optional[
     error_val = error.replace("\n", " ")[:80] if error else "null"
     done_val = str(done).lower()
     print(
-        f"[STEP] step={step} action={safe_action} reward={reward:.2f} done={done_val} error={error_val}",
+        f"[STEP] step={step} action={safe_action} reward={reward:.6f} done={done_val} error={error_val}",
         flush=True,
     )
 
 
 def log_end(success: bool, steps: int, score: float, rewards: List[float]) -> None:
-    rewards_str = ",".join(f"{r:.2f}" for r in rewards)
+    rewards_str = ",".join(f"{r:.6f}" for r in rewards)
     print(
-        f"[END] success={str(success).lower()} steps={steps} score={score:.3f} rewards={rewards_str}",
+        f"[END] success={str(success).lower()} steps={steps} score={score:.6f} rewards={rewards_str}",
         flush=True,
     )
 
@@ -141,7 +144,7 @@ def run_episode(client: OpenAI, task_id: str) -> dict:
 
     rewards: List[float] = []
     steps_taken = 0
-    score = 0.0
+    score = EPS          # ← default: never 0.0
     success = False
 
     log_start(task=task_id, env=BENCHMARK, model=MODEL_NAME)
@@ -176,13 +179,14 @@ def run_episode(client: OpenAI, task_id: str) -> dict:
             if done:
                 break
 
-        # Normalize score: best single-step reward (agent may solve in 1 step)
-        score = max(rewards) if rewards else 0.0
-        score = min(max(score, 0.0), 1.0)
+        # Best single-step reward — clamped strictly inside (0, 1)
+        raw_score = max(rewards) if rewards else EPS
+        score = max(EPS, min(1.0 - EPS, raw_score))   # ← FIXED: never 0.0 or 1.0
         success = score >= SUCCESS_THRESHOLD
 
     except Exception as exc:
         print(f"[DEBUG] Episode error: {exc}", flush=True)
+        score = EPS   # ← FIXED: never 0.0 on exception path
 
     finally:
         log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
@@ -212,10 +216,10 @@ def main():
     print(f"{'='*60}", flush=True)
     for r in results:
         status = "PASS" if r["success"] else "FAIL"
-        print(f"[{status}] {r['task_id']:20s}  score={r['score']:.3f}  steps={r['steps']}", flush=True)
+        print(f"[{status}] {r['task_id']:20s}  score={r['score']:.6f}  steps={r['steps']}", flush=True)
 
-    avg = sum(r["score"] for r in results) / len(results) if results else 0.0
-    print(f"\nAverage score: {avg:.3f}", flush=True)
+    avg = sum(r["score"] for r in results) / len(results) if results else EPS
+    print(f"\nAverage score: {avg:.6f}", flush=True)
 
 
 if __name__ == "__main__":
