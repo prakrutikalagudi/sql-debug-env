@@ -17,7 +17,7 @@ EPS = 0.001
 
 
 
-ef clamp(v: float) -> float:
+def clamp(v: float) -> float:
     return max(0.001, min(0.999, float(v)))
 
 
