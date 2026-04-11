@@ -4,7 +4,8 @@ Observation, Action, Reward — OpenEnv spec compliant.
 """
 
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
 
 
 class SQLObservation(BaseModel):
@@ -36,8 +37,7 @@ class SQLAction(BaseModel):
 
 class SQLReward(BaseModel):
     """Shaped reward breakdown for a single step."""
-
-    total: float = Field(..., gt=0.0, lt=1.0, description="Total reward strictly in (0,1)")
+    total: float = Field(..., description="Total reward strictly in (0,1)")
     syntax_valid: float = Field(0.0)
     executes: float = Field(0.0)
     result_correct: float = Field(0.0)
@@ -45,16 +45,23 @@ class SQLReward(BaseModel):
     loop_penalty: float = Field(0.0)
     destructive_penalty: float = Field(0.0)
 
+    @field_validator("total", mode="before")
+    @classmethod
+    def clamp_total(cls, v):
+        return max(0.001, min(0.999, float(v)))
 
 class StepResult(BaseModel):
     """Returned by env.step()."""
-
     observation: SQLObservation
-    reward: float = Field(..., gt=0.0, lt=1.0)   # 🔥 IMPORTANT FIX
+    reward: float  # Remove gt/lt Pydantic constraints — validate manually
     reward_breakdown: SQLReward
     done: bool
     info: Dict[str, Any] = Field(default_factory=dict)
 
+    @field_validator("reward", mode="before")
+    @classmethod
+    def clamp_reward(cls, v):
+        return max(0.001, min(0.999, float(v)))
 
 class ResetResult(BaseModel):
     """Returned by env.reset()."""
