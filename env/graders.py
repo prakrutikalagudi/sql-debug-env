@@ -14,13 +14,11 @@ from env.models import SQLReward
 
 
 # Small epsilon to keep score strictly between (0,1)
-EPS = 1e-6
-
+EPS = 0.001  
 
 def clamp_score(value: float) -> float:
-    """Ensure score is strictly between (0, 1)."""
-    return max(EPS, min(1.0 - EPS, value))
-
+    """Ensure score is strictly between (0, 1) — well clear of boundaries."""
+    return max(EPS, min(1.0 - EPS, float(value)))
 
 # ──────────────────────────────────────────────────────────────────
 # SQL execution helpers
