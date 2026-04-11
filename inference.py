@@ -36,7 +36,7 @@ MAX_TOKENS   = 512
 SUCCESS_THRESHOLD = 0.7   # reward >= this → episode is "successful"
 
 # Small epsilon — scores must be strictly inside (0, 1)
-EPS = 1e-6
+EPS = 0.001 
 
 SYSTEM_PROMPT = textwrap.dedent("""
 You are an expert SQL engineer. You will be given a broken SQL query and a database schema.
@@ -181,7 +181,7 @@ def run_episode(client: OpenAI, task_id: str) -> dict:
 
         # Best single-step reward — clamped strictly inside (0, 1)
         raw_score = max(rewards) if rewards else EPS
-        score = max(EPS, min(1.0 - EPS, raw_score))   # ← FIXED: never 0.0 or 1.0
+        score = max(0.001, min(0.999, float(raw_score))) ← FIXED: never 0.0 or 1.0
         success = score >= SUCCESS_THRESHOLD
 
     except Exception as exc:
