@@ -13,11 +13,12 @@ from env.tasks import TASKS
 _envs: Dict[str, SQLDebugEnv] = {}
 DEFAULT_TASK = os.getenv("SQL_DEBUG_TASK", "syntax_fix")
 
-EPS = 1e-6
+EPS = 0.001
 
 
-def clamp(v: float) -> float:
-    return max(EPS, min(1.0 - EPS, v))
+
+ef clamp(v: float) -> float:
+    return max(0.001, min(0.999, float(v)))
 
 
 def _get_or_create_env(task_id: str) -> SQLDebugEnv:
