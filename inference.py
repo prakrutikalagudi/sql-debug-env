@@ -181,7 +181,7 @@ def run_episode(client: OpenAI, task_id: str) -> dict:
 
         # Best single-step reward — clamped strictly inside (0, 1)
         raw_score = max(rewards) if rewards else EPS
-        score = max(0.001, min(0.999, float(raw_score))) ← FIXED: never 0.0 or 1.0
+        score = max(0.001, min(0.999, float(raw_score))) #← FIXED: never 0.0 or 1.0
         success = score >= SUCCESS_THRESHOLD
 
     except Exception as exc:
